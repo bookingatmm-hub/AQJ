@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Form</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="form-container">
+    <img src="logo.png" alt="Logo" class="logo"/>
+
+    <h1>Place Your Order</h1>
+
+    <form id="orderForm" method="POST">
+      <!-- Hidden prefilled fields -->
+      <input type="hidden" id="sno" name="SNO" />
+      <input type="hidden" id="party" name="PARTY" />
+      <input type="hidden" id="district" name="DISTRICT" />
+      <input type="hidden" id="state" name="STATE" />
+      <input type="hidden" id="phone" name="PHONE" />
+      <input type="hidden" id="catalogue" name="CATALOGUE" />
+      <input type="hidden" id="price" name="PRICE" />
+
+      <!-- Visible field -->
+      <label for="quantity">Quantity:</label>
+      <input type="number" id="quantity" name="QUANTITY" required />
+
+      <button type="submit">Submit Order</button>
+    </form>
+  </div>
+
+  <script>
+    // Change this to your published Google Sheet CSV URL
+    const PUBLISHED_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/.../pub?output=csv";
+
+    // Change this to your Formspree submit URL
+    const SUBMIT_URL = "https://formspree.io/f/your-form-id";
+
+    // Parse URL params and prefill hidden inputs
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById("sno").value = params.get("sno") || "";
+    document.getElementById("party").value = params.get("party") || "";
+    document.getElementById("district").value = params.get("district") || "";
+    document.getElementById("state").value = params.get("state") || "";
+    document.getElementById("phone").value = params.get("phone") || "";
+    document.getElementById("catalogue").value = params.get("catalogue") || "";
+    document.getElementById("price").value = params.get("price") || "";
+
+    // Handle form submission
+    document.getElementById("orderForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const response = await fetch(SUBMIT_URL, {
+        method: "POST",
+        body: formData
+      });
+
+      if (response.ok) {
+        alert("✅ Order submitted successfully!");
+        this.reset();
+      } else {
+        alert("❌ Something went wrong. Please try again.");
+      }
+    });
+  </script>
+</body>
+</html>
