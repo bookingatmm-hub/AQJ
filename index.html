@@ -53,25 +53,75 @@
   </div>
 
   <script>
+    // 🔗 Replace with your published sheet CSV link
+    const PUBLISHED_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1pLlIrZzcYxv-LX0iOgel0qsIDoXSHdvRW8fDio_dbSM/edit?gid=1008240067#gid=1008240067";
     const SUBMIT_URL = "https://formspree.io/f/xjkelgaq";
 
-    const params = new URLSearchParams(window.location.search);
-    document.getElementById("sno").value = params.get("sno") || "";
-    document.getElementById("party").value = params.get("party") || "";
-    document.getElementById("district").value = params.get("district") || "";
-    document.getElementById("state").value = params.get("state") || "";
-    document.getElementById("phone").value = params.get("phone") || "";
-    document.getElementById("catalogue").value = params.get("catalogue") || "";
-    document.getElementById("price").value = params.get("price") || "";
+    // Load data from sheet
+    async function loadSheetData() {
+      try {
+        const res = await fetch(PUBLISHED_SHEET_CSV_URL);
+        const csv = await res.text();
+        const rows = csv.trim().split("\n").map(r => r.split(","));
 
-    const pdfParam = params.get("pdf");
-    if (pdfParam) {
-      document.getElementById("pdf-frame").src = pdfParam;
-      document.getElementById("pdf-link").href = pdfParam;
-    } else {
-      document.getElementById("pdf-container").style.display = "none";
+        // Example mapping (adjust if needed):
+        // A7:E7 => sno, party, district, state, phone
+        const snoVal = rows[6][0];
+        const partyVal = rows[6][1];
+        const districtVal = rows[6][2];
+        const stateVal = rows[6][3];
+        const phoneVal = rows[6][4];
+
+        // F1 => catalogue
+        const catalogueVal = rows[0][5];
+
+        // D2 => price
+        const priceVal = rows[1][3];
+
+        // G1 => pdf link
+        const pdfVal = rows[0][6];
+
+        // Prefill
+        document.getElementById("sno").value = snoVal || "";
+        document.getElementById("party").value = partyVal || "";
+        document.getElementById("district").value = districtVal || "";
+        document.getElementById("state").value = stateVal || "";
+        document.getElementById("phone").value = phoneVal || "";
+        document.getElementById("catalogue").value = catalogueVal || "";
+        document.getElementById("price").value = priceVal || "";
+
+        if (pdfVal) {
+          document.getElementById("pdf-frame").src = pdfVal;
+          document.getElementById("pdf-link").href = pdfVal;
+        }
+      } catch (err) {
+        console.error("Error loading sheet data", err);
+      }
     }
 
+    // Override with URL params if present
+    function loadParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("sno")) document.getElementById("sno").value = params.get("sno");
+      if (params.get("party")) document.getElementById("party").value = params.get("party");
+      if (params.get("district")) document.getElementById("district").value = params.get("district");
+      if (params.get("state")) document.getElementById("state").value = params.get("state");
+      if (params.get("phone")) document.getElementById("phone").value = params.get("phone");
+      if (params.get("catalogue")) document.getElementById("catalogue").value = params.get("catalogue");
+      if (params.get("price")) document.getElementById("price").value = params.get("price");
+      if (params.get("pdf")) {
+        document.getElementById("pdf-frame").src = params.get("pdf");
+        document.getElementById("pdf-link").href = params.get("pdf");
+      }
+    }
+
+    // On page load
+    (async function init() {
+      await loadSheetData();
+      loadParams(); // Override with URL params if given
+    })();
+
+    // Submit handler
     document.getElementById("orderForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const formData = new FormData(this);
