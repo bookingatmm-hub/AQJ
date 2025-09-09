@@ -3,41 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Order Form</title>
+  <title>M&M Booking Form</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="form-container">
-    <img src="logo.png" alt="Logo" class="logo"/>
-
-    <h1>Place Your Order</h1>
+  <div class="form-wrapper">
+    <div class="header">
+      <img src="logo.png" alt="Logo" class="logo"/>
+      <h1>M&M Booking Form</h1>
+    </div>
 
     <form id="orderForm" method="POST">
-      <!-- Hidden prefilled fields -->
+      <!-- Hidden Fields -->
       <input type="hidden" id="sno" name="SNO" />
       <input type="hidden" id="party" name="PARTY" />
       <input type="hidden" id="district" name="DISTRICT" />
       <input type="hidden" id="state" name="STATE" />
       <input type="hidden" id="phone" name="PHONE" />
-      <input type="hidden" id="catalogue" name="CATALOGUE" />
-      <input type="hidden" id="price" name="PRICE" />
 
-      <!-- Visible field -->
-      <label for="quantity">Quantity:</label>
-      <input type="number" id="quantity" name="QUANTITY" required />
+      <!-- Visible locked fields -->
+      <div class="form-group">
+        <label>Catalogue Number</label>
+        <input type="text" id="catalogue" name="CATALOGUE" readonly />
+      </div>
 
-      <button type="submit">Submit Order</button>
+      <div class="form-group">
+        <label>Price</label>
+        <input type="text" id="price" name="PRICE" readonly />
+        <small class="help-text">Locked from Google Sheet</small>
+      </div>
+
+      <!-- PDF Embed -->
+      <div class="form-group">
+        <label>Catalog Preview</label>
+        <div id="pdf-container">
+          <iframe id="pdf-frame" src="" frameborder="0"></iframe>
+          <a id="pdf-link" href="#" target="_blank" class="pdf-button">Open Document</a>
+        </div>
+      </div>
+
+      <!-- User input -->
+      <div class="form-group">
+        <label for="quantity">How Many Bundles Do You Want?</label>
+        <input type="number" id="quantity" name="QUANTITY" min="1" required />
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Order</button>
     </form>
   </div>
 
   <script>
-    // Change this to your published Google Sheet CSV URL
-    const PUBLISHED_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1pLlIrZzcYxv-LX0iOgel0qsIDoXSHdvRW8fDio_dbSM/edit?usp=sharing";
-
-    // Change this to your Formspree submit URL
     const SUBMIT_URL = "https://formspree.io/f/xjkelgaq";
 
-    // Parse URL params and prefill hidden inputs
     const params = new URLSearchParams(window.location.search);
     document.getElementById("sno").value = params.get("sno") || "";
     document.getElementById("party").value = params.get("party") || "";
@@ -47,21 +64,23 @@
     document.getElementById("catalogue").value = params.get("catalogue") || "";
     document.getElementById("price").value = params.get("price") || "";
 
-    // Handle form submission
+    const pdfParam = params.get("pdf");
+    if (pdfParam) {
+      document.getElementById("pdf-frame").src = pdfParam;
+      document.getElementById("pdf-link").href = pdfParam;
+    } else {
+      document.getElementById("pdf-container").style.display = "none";
+    }
+
     document.getElementById("orderForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-
       const formData = new FormData(this);
-      const response = await fetch(SUBMIT_URL, {
-        method: "POST",
-        body: formData
-      });
-
+      const response = await fetch(SUBMIT_URL, { method: "POST", body: formData });
       if (response.ok) {
         alert("✅ Order submitted successfully!");
         this.reset();
       } else {
-        alert("❌ Something went wrong. Please try again.");
+        alert("❌ Something went wrong. Try again.");
       }
     });
   </script>
